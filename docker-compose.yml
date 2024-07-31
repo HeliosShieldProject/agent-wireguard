@@ -1,4 +1,4 @@
-name: "Wireguard"
+name: "wireguard"
 
 services:
   wireguard:
@@ -18,7 +18,7 @@ services:
       - INTERNAL_SUBNET=${INTERNAL_SUBNET}
       - ALLOWEDIPS=0.0.0.0/0
       - PERSISTENTKEEPALIVE_PEERS=20
-      - LOG_CONFS=true
+      - LOG_CONFS=false
     volumes:
       - /lib/modules:/lib/modules
     ports:

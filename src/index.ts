@@ -62,7 +62,7 @@ async function main() {
   let serverActivation = await spinner();
   serverActivation.start("Activating server");
   await waitForActivation(dropletId);
-  serverCreation.stop("Server activated");
+  serverActivation.stop("Server activated");
 
   outro("Server setup complete");
 }
