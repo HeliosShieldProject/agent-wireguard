@@ -4,11 +4,12 @@ source .env
 ufw allow $WIREGUARD_PORT
 
 # Setup Wireguard
+address=$(echo $INTERNAL_SUBNET | awk -F. '{print $1"."$2"."$3".1"}')
 wg genkey | tee /etc/wireguard/privatekey | wg pubkey | tee /etc/wireguard/publickey
 chmod 600 /etc/wireguard/privatekey
 echo "[Interface]
 PrivateKey = $(cat /etc/wireguard/privatekey)
-Address = $INTERNAL_SUBNET/24
+Address = $address/24
 ListenPort = $WIREGUARD_PORT
 PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
