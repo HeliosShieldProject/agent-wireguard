@@ -1,4 +1,4 @@
-import { globalOptions } from "@/config";
+import { country, ENV, globalOptions } from "@/config";
 import {
   addDomain,
   createDroplet,
@@ -6,6 +6,7 @@ import {
   getDropletIp,
   waitForActivation,
 } from "@/requests";
+import { run } from "@/utils";
 import {
   cancel,
   group,
@@ -15,6 +16,7 @@ import {
   spinner,
   text,
 } from "@clack/prompts";
+import fs from "fs";
 import color from "picocolors";
 
 interface State {
@@ -78,12 +80,39 @@ async function main() {
   await addDomain(config.region, ip);
   domainAddition.stop("Domain added");
 
-  let chillBeforeFullSetup = await spinner();
-  chillBeforeFullSetup.start("Relax and chill before server will be fully setup");
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  chillBeforeFullSetup.stop("Server reeady");
+  let envCreation = await spinner();
+  envCreation.start("Creating environment");
+  fs.writeFile(
+    "./temp/.env",
+    `INTERNAL_SUBNET=${config.subnet}
+    PEERS=${config.peers}
+    WIREGUARD_PORT=${config.port}
+    THREADS=16
+    COUNTRY=${country[config.region as keyof typeof country]}
+    DOMAIN=agent-wireguard-${config.region}.${ENV.HELIOS_DOMAIN}
+    DATABASE_CONNECTION_STRING=${ENV.DATABASE_CONNECTION_STRING}`,
+    (err) => {
+      if (err) {
+        console.error(err);
+        process.exit(1);
+      }
+    }
+  );
+  envCreation.stop("Environment created");
 
-  
+  let chillBeforeFullSetup = await spinner();
+  chillBeforeFullSetup.start(
+    "Relax and chill before server will be fully setup"
+  );
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+  chillBeforeFullSetup.stop("Server ready");
+
+  let startServer = await spinner();
+  startServer.start("Starting server");
+  await run(`scp ./temp/.env root@${ip}:~/.env
+scp scripts/ root@${ip}:~/scripts
+ssh root@${ip} ". ~/scripts/setup.sh"`);
+  startServer.stop("Server started");
 
   outro("Server setup complete");
 }

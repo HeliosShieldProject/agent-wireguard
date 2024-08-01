@@ -6,8 +6,20 @@ const envSchema = z.object({
   DIGITALOCEAN_TOKEN: z.string(),
   SSH_KEY_IDS: z.string(),
   HELIOS_DOMAIN: z.string(),
+  DATABASE_CONNECTION_STRING: z.string(),
 });
 export const ENV = envSchema.parse(process.env);
+
+export enum country {
+  lon1 = "UK",
+  nyc3 = "USA",
+  fra1 = "Germany",
+  // ams3: "Netherlands",
+  // sgp1: "Singapore",
+  // blr1: "India",
+  // tor1: "Canada",
+  // syd1: "Australia",
+}
 
 export const globalOptions = {
   droplets: [
