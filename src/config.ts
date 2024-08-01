@@ -5,6 +5,7 @@ config();
 const envSchema = z.object({
   DIGITALOCEAN_TOKEN: z.string(),
   SSH_KEY_IDS: z.string(),
+  HELIOS_DOMAIN: z.string(),
 });
 export const ENV = envSchema.parse(process.env);
 

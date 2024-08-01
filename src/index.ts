@@ -1,17 +1,22 @@
 // Run `npm start` to start the demo
+import { globalOptions } from "@/config";
 import {
+  addDomain,
+  createDroplet,
+  fetchDropets,
+  getDropletIp,
+  waitForActivation,
+} from "@/requests";
+import {
+  cancel,
+  group,
   intro,
   outro,
-  confirm,
   select,
   spinner,
-  cancel,
   text,
-  group,
 } from "@clack/prompts";
 import color from "picocolors";
-import { globalOptions } from "@/config";
-import { createDroplet, fetchDropets, waitForActivation } from "@/requests";
 
 interface State {
   options: {
@@ -63,6 +68,16 @@ async function main() {
   serverActivation.start("Activating server");
   await waitForActivation(dropletId);
   serverActivation.stop("Server activated");
+
+  let ipRetrieval = await spinner();
+  ipRetrieval.start("Retrieving server IP");
+  let ip = await getDropletIp(dropletId);
+  ipRetrieval.stop(`Server IP: ${ip}`);
+
+  let domainAddition = await spinner();
+  domainAddition.start("Adding domain");
+  await addDomain(config.region, ip);
+  domainAddition.stop("Domain added");
 
   outro("Server setup complete");
 }
