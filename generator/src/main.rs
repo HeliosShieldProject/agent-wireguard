@@ -7,18 +7,19 @@ use config::ENV;
 use enums::errors::Error;
 use scripts::add_config;
 use std::{
+    fs::File,
     io::Write,
     net::Ipv4Addr,
     sync::{Arc, Mutex},
 };
-use structs::{Config, State};
+use structs::{Peer, State};
 
 fn main() -> Result<(), Error> {
-    let configs: Arc<Mutex<State>> = State::new();
+    let peers: Arc<Mutex<State>> = State::new();
 
     let mut handles = vec![];
     for _ in 0..ENV.threads {
-        let state = Arc::clone(&configs);
+        let state = Arc::clone(&peers);
 
         let handle = std::thread::spawn(move || -> Result<(), Error> {
             loop {
@@ -32,12 +33,9 @@ fn main() -> Result<(), Error> {
                     state.lock()?.counter += 1;
                 }
                 let ip = Ipv4Addr::from(id as u32 + 1 + u32::from(ENV.subnet));
-                let private_key = add_config(&ip)?;
-                let config = Config {
-                    private_key,
-                    user_ip: ip,
-                };
-                state.lock()?.configs.lock()?.push(config);
+                let new_peer = add_config(&ip)?;
+                let config = Peer::new(new_peer, ip);
+                state.lock()?.peers.lock()?.push(config);
             }
             Ok(())
         });
@@ -49,54 +47,62 @@ fn main() -> Result<(), Error> {
         handle.join()?.ok();
     }
 
-    configs
+    peers
         .lock()?
-        .configs
+        .peers
         .lock()?
         .sort_by(|a, b| a.user_ip.octets().iter().cmp(b.user_ip.octets().iter()));
 
-    //     // let server_public_key = std::fs::read_to_string("/etc/wireguard/publickey")?;
-    //     let server_public_key = "server_public_key";
+    let mut wg0_conf = File::options()
+        .append(true)
+        .open("/etc/wireguard/wg0.conf")?;
 
-    //     let mut file: std::fs::File = std::fs::File::create("new_server.sql")?;
-    //     let mut data = format!(
-    //         r#"
-    // DO $$
-    // DECLARE
-    //     server_id UUID;
-    // BEGIN
-    //     INSERT INTO "server" ("public_key", "wireguard_uri", "country")
-    //     VALUES ('{}', '{}', '{}')
-    //     RETURNING "id" INTO server_id;
+    peers.lock()?.peers.lock()?.iter().for_each(|config| {
+        writeln!(
+            wg0_conf,
+            "[Peer]\nPublicKey = {}\nAllowedIPs = {}/32\n",
+            config.public_key, config.user_ip
+        )
+        .ok();
+    });
 
-    //     INSERT INTO "config" ("private_key", "user_ip", "server_id")
-    //     VALUES"#,
-    //         server_public_key, ENV.domain, ENV.country
-    //     );
+    let server_public_key = std::fs::read_to_string("/etc/wireguard/publickey")?;
 
-    //     data.push_str(
-    //         configs
-    //             .lock()?
-    //             .configs
-    //             .lock()?
-    //             .iter()
-    //             .map(|config| {
-    //                 format!(
-    //                     r#"('{}', '{}', server_id)"#,
-    //                     config.private_key, config.user_ip
-    //                 )
-    //             })
-    //             .collect::<Vec<String>>()
-    //             .join(",\n")
-    //             .as_str(),
-    //     );
+    let mut file = File::create("data.sql")?;
+    let mut data = format!(
+        r#"
+    DO $$
+    DECLARE
+        server_id UUID;
+    BEGIN
+        INSERT INTO "server" ("public_key", "wireguard_uri", "country")
+        VALUES ('{}', '{}', '{}')
+        RETURNING "id" INTO server_id;
 
-    //     data.push_str(";\nEND$$;");
+        INSERT INTO "config" ("private_key", "user_ip", "server_id")
+        VALUES"#,
+        server_public_key, ENV.domain, ENV.country
+    );
 
-    //     file.write_all(data.as_bytes())?;
+    data.push_str(
+        peers
+            .lock()?
+            .peers
+            .lock()?
+            .iter()
+            .map(|config| {
+                format!(
+                    r#"('{}', '{}', server_id)"#,
+                    config.private_key, config.user_ip
+                )
+            })
+            .collect::<Vec<String>>()
+            .join(",\n")
+            .as_str(),
+    );
 
-    for config in configs.lock()?.configs.lock()?.iter() {
-        println!("{:?}", config);
-    }
+    data.push_str(";\nEND$$;");
+
+    file.write_all(data.as_bytes())?;
     Ok(())
 }

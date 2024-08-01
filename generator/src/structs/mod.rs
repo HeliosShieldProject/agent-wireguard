@@ -1,5 +1,5 @@
-pub mod config;
+pub mod peer;
 pub mod state;
 
-pub use config::Config;
+pub use peer::{NewPeer, Peer};
 pub use state::State;

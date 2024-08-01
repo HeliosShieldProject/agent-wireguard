@@ -1,7 +1,7 @@
 pub mod thread_error;
 pub use thread_error::ThreadError;
 
-use crate::structs::{Config, State};
+use crate::structs::{Peer, State};
 use std::{
     any::Any,
     string::FromUtf8Error,
@@ -33,8 +33,8 @@ impl From<PoisonError<MutexGuard<'_, State>>> for Error {
     }
 }
 
-impl From<PoisonError<MutexGuard<'_, Vec<Config>>>> for Error {
-    fn from(_: PoisonError<MutexGuard<'_, Vec<Config>>>) -> Self {
+impl From<PoisonError<MutexGuard<'_, Vec<Peer>>>> for Error {
+    fn from(_: PoisonError<MutexGuard<'_, Vec<Peer>>>) -> Self {
         Error::ThreadError(ThreadError::PoisonError)
     }
 }

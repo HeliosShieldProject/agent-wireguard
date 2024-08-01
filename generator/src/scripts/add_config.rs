@@ -1,11 +1,11 @@
-use crate::enums::errors::Error;
+use crate::{enums::errors::Error, structs::NewPeer};
 use std::{
     io::Write,
     net::Ipv4Addr,
     process::{Command, Stdio},
 };
 
-pub fn add_config(ip: &Ipv4Addr) -> Result<String, Error> {
+pub fn add_config(ip: &Ipv4Addr) -> Result<NewPeer, Error> {
     let private_key_output = Command::new("wg").arg("genkey").output()?;
     let private_key = String::from_utf8(private_key_output.stdout)?;
 
@@ -42,5 +42,8 @@ pub fn add_config(ip: &Ipv4Addr) -> Result<String, Error> {
         .arg("wg0")
         .spawn()?;
 
-    Ok(private_key.trim().to_string())
+    Ok(NewPeer {
+        private_key: private_key.trim().to_string(),
+        public_key: public_key.trim().to_string(),
+    })
 }
