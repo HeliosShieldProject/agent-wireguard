@@ -1,0 +1,37 @@
+log:
+  level: INFO
+
+api:
+  dashboard: true
+
+providers:
+  docker: true
+
+metrics:
+  prometheus:
+    buckets:
+      - 0.1
+      - 0.3
+      - 1.2
+      - 5.0
+
+entrypoints:
+  web:
+    address: :80
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: :443
+  udp:
+    address: :51820
+
+certificatesresolvers:
+  myresolver:
+    acme:
+      dnsChallenge:
+        provider: digitalocean
+      email: michkov.evgeny@gmail.com
+      storage: /etc/traefik/acme.json
