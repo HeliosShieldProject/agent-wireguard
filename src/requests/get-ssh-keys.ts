@@ -14,4 +14,4 @@ export const getSshKeys = async (): Promise<Array<number>> => {
 
   let data = await response.json();
   return data.ssh_keys.map((key: any) => key.id);
-}
+};
