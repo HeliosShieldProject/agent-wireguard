@@ -13,11 +13,12 @@ export const createDroplet = async (region: string): Promise<number> => {
       region,
       size: "s-1vcpu-1gb-amd",
       image: "docker-20-04",
-      ssh_keys: getSshKeys(),
+      ssh_keys: await getSshKeys(),
     }),
   });
 
   if (!response.ok) {
+    console.log(await response.text());
     throw new Error("Failed to create droplet");
   }
 

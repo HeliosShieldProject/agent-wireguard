@@ -21,6 +21,7 @@ export const addDomain = async (
   );
 
   if (!response.ok) {
+    console.log(await response.text());
     throw new Error("Failed to add domain");
   }
 

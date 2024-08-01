@@ -9,6 +9,7 @@ export const getSshKeys = async (): Promise<Array<number>> => {
   });
 
   if (!response.ok) {
+    console.log(await response.text());
     throw new Error("Failed to fetch ssh keys");
   }
 

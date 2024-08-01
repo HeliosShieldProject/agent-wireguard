@@ -4,7 +4,6 @@ config();
 
 const envSchema = z.object({
   DIGITALOCEAN_TOKEN: z.string(),
-  SSH_KEY_IDS: z.string(),
   HELIOS_DOMAIN: z.string(),
   DATABASE_CONNECTION_STRING: z.string(),
 });
@@ -44,7 +43,7 @@ export const globalOptions = {
   },
   peers: {
     message: "Provide number of peers",
-    placeholder: "1023",
-    defaultValue: "1023",
+    placeholder: "253",
+    defaultValue: "253",
   },
 };

@@ -12,6 +12,7 @@ export const getDropletIp = async (dropletId: number): Promise<string> => {
   );
 
   if (!response.ok) {
+    console.log(await response.text());
     throw new Error("Failed to fetch droplet");
   }
 

@@ -50,7 +50,17 @@ async function main() {
       },
       subnet: () => text(globalOptions.subnet),
       port: () => text(globalOptions.port),
-      peers: () => text(globalOptions.peers),
+      peers: () =>
+        text({
+          ...globalOptions.peers,
+          validate: (value) => {
+            if (parseInt(value) > 253) {
+              return "Peers cannot exceed 253";
+            } else if (parseInt(value) < 1) {
+              return "Peers cannot be less than 1";
+            }
+          },
+        }),
     },
     {
       onCancel: ({ results }) => {
@@ -82,21 +92,15 @@ async function main() {
 
   let envCreation = await spinner();
   envCreation.start("Creating environment");
-  fs.writeFile(
-    "./temp/.env",
+  fs.writeFileSync(
+    "env",
     `INTERNAL_SUBNET=${config.subnet}
     PEERS=${config.peers}
     WIREGUARD_PORT=${config.port}
     THREADS=16
     COUNTRY=${country[config.region as keyof typeof country]}
     DOMAIN=agent-wireguard-${config.region}.${ENV.HELIOS_DOMAIN}
-    DATABASE_CONNECTION_STRING=${ENV.DATABASE_CONNECTION_STRING}`,
-    (err) => {
-      if (err) {
-        console.error(err);
-        process.exit(1);
-      }
-    }
+    DATABASE_CONNECTION_STRING=${ENV.DATABASE_CONNECTION_STRING}`
   );
   envCreation.stop("Environment created");
 
@@ -104,14 +108,15 @@ async function main() {
   chillBeforeFullSetup.start(
     "Relax and chill before server will be fully setup"
   );
-  await new Promise((resolve) => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 40000));
   chillBeforeFullSetup.stop("Server ready");
 
   let startServer = await spinner();
   startServer.start("Starting server");
-  await run(`scp ./temp/.env root@${ip}:~/.env
-scp scripts/ root@${ip}:~/scripts
-ssh root@${ip} ". ~/scripts/setup.sh"`);
+  await run(`scp env root@${ip}:~/.env
+scp -r scripts/ root@${ip}:~/scripts/
+ssh root@${ip} ". ~/scripts/server_setup.sh"
+rm env`);
   startServer.stop("Server started");
 
   outro("Server setup complete");

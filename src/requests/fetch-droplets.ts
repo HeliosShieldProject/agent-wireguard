@@ -8,6 +8,7 @@ export const fetchDropets = async (): Promise<Array<string>> => {
     },
   });
   if (!response.ok) {
+    console.log(await response.text());
     throw new Error("Failed to fetch droplets");
   }
   let data = await response.json();
