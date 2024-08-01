@@ -1,4 +1,5 @@
 import { ENV } from "@/config";
+import { getSshKeys } from "./get-ssh-keys";
 
 export const createDroplet = async (region: string): Promise<number> => {
   let response = await fetch("https://api.digitalocean.com/v2/droplets", {
@@ -12,7 +13,7 @@ export const createDroplet = async (region: string): Promise<number> => {
       region,
       size: "s-1vcpu-1gb-amd",
       image: "docker-20-04",
-      ssh_keys: ENV.SSH_KEY_IDS.split(","),
+      ssh_keys: getSshKeys(),
     }),
   });
 
