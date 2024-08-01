@@ -1,6 +1,26 @@
 name: "wireguard"
 
 services:
+  traefik:
+    container_name: traefik
+    image: traefik:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - ${SERVERPORT}:${SERVERPORT}/udp
+    environment:
+      DO_AUTH_TOKEN: ${DO_AUTH_TOKEN}
+    labels:
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${HELIOS_DOMAIN}`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
+      - "traefik.http.routers.traefik.service=api@internal"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./compose/traefik/traefik.yml:/etc/traefik/traefik.yml
+      - ./compose/traefik/dynamic_conf.yml:/etc/traefik/dynamic_conf.yml
+
   wireguard:
     image: lscr.io/linuxserver/wireguard:latest
     container_name: wireguard
@@ -25,4 +45,9 @@ services:
       - ${SERVERPORT}:${SERVERPORT}/udp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
-    restart: unless-stopped
+    restart: always
+    labels:
+      - "traefik.udp.routers.wireguard.rule=HostSNI(`HELIOS_AGENT_DOMAIN`)"
+      - "traefik.udp.routers.wireguard.entrypoints=udp"
+      - "traefik.udp.routers.wireguard.tls.certresolver=myresolver"
+      - "traefik.udp.services.wireguard.loadbalancer.server.port=${SERVERPORT}"
