@@ -1,4 +1,3 @@
-// Run `npm start` to start the demo
 import { globalOptions } from "@/config";
 import {
   addDomain,
@@ -78,6 +77,13 @@ async function main() {
   domainAddition.start("Adding domain");
   await addDomain(config.region, ip);
   domainAddition.stop("Domain added");
+
+  let chillBeforeFullSetup = await spinner();
+  chillBeforeFullSetup.start("Relax and chill before server will be fully setup");
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+  chillBeforeFullSetup.stop("Server reeady");
+
+  
 
   outro("Server setup complete");
 }
