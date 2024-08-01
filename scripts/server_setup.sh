@@ -35,8 +35,8 @@ tar -xzf "$SAVE_PATH"
 rm -f "$SAVE_PATH"
 
 # Run Binary
-chmod +x agent-wireguard
-./agent-wireguard
+chmod +x generator
+./generator
 
 # Add configs to database
 psql $DATABASE_CONNECTION_STRING -f data.sql
