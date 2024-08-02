@@ -1,4 +1,5 @@
 # Pre-requisite: .env file should be present in the root directory
+export DEBIAN_FRONTEND=noninteractive
 apt update -y && apt install -y wireguard postgresql
 source .env
 ufw allow $WIREGUARD_PORT

@@ -108,14 +108,14 @@ async function main() {
   chillBeforeFullSetup.start(
     "Relax and chill before server will be fully setup"
   );
-  await new Promise((resolve) => setTimeout(resolve, 40000));
+  await new Promise((resolve) => setTimeout(resolve, 90000));
   chillBeforeFullSetup.stop("Server ready");
 
   let startServer = await spinner();
   startServer.start("Starting server");
-  await run(`scp env root@${ip}:~/.env
-scp -r scripts/ root@${ip}:~/scripts/
-ssh root@${ip} ". ~/scripts/server_setup.sh"
+  await run(`scp -o StrictHostKeyChecking=no env root@${ip}:~/.env
+scp -o StrictHostKeyChecking=no -r scripts/ root@${ip}:~/scripts/
+ssh -o StrictHostKeyChecking=no root@${ip} ". ~/scripts/server_setup.sh"
 rm env`);
   startServer.stop("Server started");
 
