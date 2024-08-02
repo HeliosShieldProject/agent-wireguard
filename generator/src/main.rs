@@ -32,7 +32,7 @@ fn main() -> Result<(), Error> {
                     id = counter;
                     state.lock()?.counter += 1;
                 }
-                let ip = Ipv4Addr::from(id as u32 + 1 + u32::from(ENV.subnet));
+                let ip = Ipv4Addr::from(id as u32 + 2 + u32::from(ENV.subnet));
                 let new_peer = add_config(&ip)?;
                 let config = Peer::new(new_peer, ip);
                 state.lock()?.peers.lock()?.push(config);
